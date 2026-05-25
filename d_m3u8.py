@@ -176,9 +176,32 @@ parser.add_argument('--o', type=str, metavar='DOSSIER',
     help=f'Dossier de téléchargement (défaut : {default_download_dir})')
 parser.add_argument('--ds', action='store_true',
     help='Lister les fichiers .mp4 déjà téléchargés dans le dossier cible')
+parser.add_argument('--link', type=str,
+    help='URL m3u8 directe à télécharger (ex: https://site/playlist.m3u8)')
 
 args = parser.parse_args()
 entries = load_cache()
+
+if args.link:
+    # mode direct m3u8
+    fake_entry = {
+        "m3u8": [args.link]
+    }
+    download_entries([fake_entry], name=args.n, folder=args.o)
+
+else:
+    # mode cache JSON
+    if args.show:
+        show_cache(entries)
+
+    if args.download:
+        download_entries(entries, name=args.n, folder=args.o)
+
+    if args.ds:
+        list_downloaded_files(folder=args.o)
+
+    if not any([args.show, args.download, args.ds]):
+        parser.print_help()
 
 if args.show:
     show_cache(entries)
