@@ -9,6 +9,9 @@ from datetime import datetime
 json_file = 'cache.json'
 default_download_dir = 'downM3U8'
 
+# Chemin vers yt-dlp local
+YTDLP_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tools', 'yt-dlp.exe')
+
 def load_cache():
     if not os.path.exists(json_file):
         print(f"Le fichier {json_file} n'existe pas.")
@@ -28,8 +31,12 @@ def show_cache(entries):
         print(f"{i}. {entry}")
 
 def build_command(url, entry, output_path):
+    if not os.path.exists(YTDLP_PATH):
+        print(f"Erreur : yt-dlp introuvable à '{YTDLP_PATH}'")
+        sys.exit(1)
+
     command = [
-        'yt-dlp',
+        YTDLP_PATH,
         '--user-agent',
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
@@ -39,7 +46,7 @@ def build_command(url, entry, output_path):
         '--no-part',                       # ← pas de fichier .part temporaire
         '-o', output_path,
     ]
-  
+
     if 'm3u8' in entry and url in entry['m3u8']:
         referer = entry.get('site', 'https://le-site-source.com')
         command.extend(['--referer', referer])
@@ -202,12 +209,3 @@ else:
 
     if not any([args.show, args.download, args.ds]):
         parser.print_help()
-
-if args.show:
-    show_cache(entries)
-if args.download:
-    download_entries(entries, name=args.n, folder=args.o)
-if args.ds:
-    list_downloaded_files(folder=args.o)
-if not any([args.show, args.download, args.ds]):
-    parser.print_help()
